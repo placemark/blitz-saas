@@ -13,13 +13,17 @@ generator client {
 // --------------------------------------
 
 model User {
-  id             Int      @id @default(autoincrement())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  name           String?
-  email          String   @unique
-  hashedPassword String?
-  role           String   @default("USER")
+  id                 Int      @id @default(autoincrement())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  name               String?
+  email              String   @unique
+  hashedPassword     String?
+  role               String   @default("USER")
+  stripeCustomerId   String?  @unique
+  price              String?
+  subscriptionStatus String?  @default("incomplete")
+
 
   tokens   Token[]
   sessions Session[]
