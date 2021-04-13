@@ -1,4 +1,4 @@
-import stripe, { DOMAIN } from "integrations/stripe"
+import stripe, { env } from "integrations/stripe"
 import { Ctx } from "blitz"
 import db from "db"
 
@@ -47,8 +47,8 @@ export default async function createCheckoutSession(
     subscription_data: {
       trial_period_days: 30,
     },
-    success_url: `${DOMAIN}/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${DOMAIN}/cancelled`,
+    success_url: `${env.DOMAIN}/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${env.DOMAIN}/cancelled`,
   })
 
   return {

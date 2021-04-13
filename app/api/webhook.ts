@@ -1,7 +1,7 @@
 import getRawBody from "raw-body"
 import db from "db"
 import { BlitzApiRequest, BlitzApiResponse } from "blitz"
-import stripe, { Stripe, STRIPE_WEBHOOK_SECRET } from "integrations/stripe"
+import stripe, { Stripe, env } from "integrations/stripe"
 
 // https://stripe.com/docs/billing/subscriptions/checkout#customer-portal
 export default async function webhook(req: BlitzApiRequest, res: BlitzApiResponse) {
@@ -18,7 +18,7 @@ export default async function webhook(req: BlitzApiRequest, res: BlitzApiRespons
     if (typeof signature !== "string") {
       throw new Error("stripe-signature header missing or incorrect")
     }
-    event = stripe.webhooks.constructEvent(rawBody, signature, STRIPE_WEBHOOK_SECRET)
+    event = stripe.webhooks.constructEvent(rawBody, signature, env.STRIPE_WEBHOOK_SECRET)
   } catch (err) {
     console.log(`⚠️  Webhook signature verification failed.`)
     return res.status(400).end()

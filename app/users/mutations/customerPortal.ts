@@ -1,4 +1,4 @@
-import stripe, { DOMAIN } from "integrations/stripe"
+import stripe, { env } from "integrations/stripe"
 import { Ctx } from "blitz"
 import db from "db"
 
@@ -21,7 +21,7 @@ export default async function customerPortalInput(_input: CustomerPortalInput, c
   // managing their billing with the portal.
   const portalsession = await stripe.billingPortal.sessions.create({
     customer: user.stripeCustomerId as string,
-    return_url: DOMAIN,
+    return_url: env.DOMAIN,
   })
 
   return {
