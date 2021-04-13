@@ -1,8 +1,11 @@
 import { Suspense } from "react"
 import { Link, BlitzPage, useMutation } from "blitz"
+import { loadStripe } from "@stripe/stripe-js"
 import Layout from "app/core/layouts/Layout"
 import { useCurrentUser } from "app/core/hooks/useCurrentUser"
 import logout from "app/auth/mutations/logout"
+import createCheckoutSession from "app/users/mutations/createCheckoutSession"
+import customerPortal from "app/users/mutations/customerPortal"
 
 /*
  * This file is just for a pleasant getting started page for your new app.
@@ -12,6 +15,8 @@ import logout from "app/auth/mutations/logout"
 const UserInfo = () => {
   const currentUser = useCurrentUser()
   const [logoutMutation] = useMutation(logout)
+  const [createCheckoutSessionMutation] = useMutation(createCheckoutSession)
+  const [customerPortalMutation] = useMutation(customerPortal)
 
   if (currentUser) {
     return (
@@ -24,10 +29,50 @@ const UserInfo = () => {
         >
           Logout
         </button>
+        <button
+          className="button small"
+          onClick={async () => {
+            if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+              throw new Error("Stripe publishable key missing")
+            }
+            if (!process.env.NEXT_PUBLIC_STRIPE_PRICE_ID) {
+              throw new Error("Stripe publishable key missing")
+            }
+            const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+            const { sessionId } = await createCheckoutSessionMutation({
+              priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
+            })
+            if (!stripe) {
+              throw new Error("Stripe could not be loaded")
+            }
+            const result = await stripe.redirectToCheckout({
+              sessionId,
+            })
+            if (result.error) {
+              console.error(result.error.message)
+            }
+          }}
+        >
+          Subscribe
+        </button>
+        {currentUser.price ? (
+          <button
+            className="button small"
+            onClick={async () => {
+              const { url } = await customerPortalMutation()
+              window.location.href = url
+            }}
+          >
+            Manage billing
+          </button>
+        ) : null}
+
         <div>
           User id: <code>{currentUser.id}</code>
           <br />
           User role: <code>{currentUser.role}</code>
+          <br />
+          Subscription status: <code>{currentUser.subscriptionStatus}</code>
         </div>
       </>
     )

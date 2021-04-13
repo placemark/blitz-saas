@@ -1,163 +1,54 @@
-[![Blitz.js](https://raw.githubusercontent.com/blitz-js/art/master/github-cover-photo.png)](https://blitzjs.com)
+## blitz-saas
 
-This is a [Blitz.js](https://github.com/blitz-js/blitz) app.
+This is an example of a Blitz app with subscription payments, with Stripe. Many
+people need to implement this sort of thing, and this is an attempt to decide on
+some tried-and-true patterns.
 
-# **name**
+Because this touches finance, I reemphasize the **no guarantees** part of the
+BSD license family: this code is free for adaptation and research, without
+guarantees.
 
-## Getting Started
+## Setup
 
-Run your app in the development mode.
+This is a Blitz app, so all of the setup for that applies to this, setting up
+Node, etc. So these directions are on top of that.
 
-```
-blitz dev
-```
+## Subscriptions with Checkout
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This aims at supporting Stripe subscriptions with checkout, roughly following
+the plot of [Subscriptions with Checkout](https://stripe.com/docs/billing/subscriptions/checkout),
+the Stripe tutorial, but with the endpoints adapted to Blitz's capabilities.
 
-## Environment Variables
+### Environment
 
-Ensure the `.env.local` file has required environment variables:
-
-```
-DATABASE_URL=postgresql://<YOUR_DB_USERNAME>@localhost:5432/blitz-saas
-```
-
-Ensure the `.env.test.local` file has required environment variables:
-
-```
-DATABASE_URL=postgresql://<YOUR_DB_USERNAME>@localhost:5432/blitz-saas_test
-```
-
-## Tests
-
-Runs your tests using Jest.
+It's expected that you have a Stripe account, which is where you'll get most of
+the required environment variables. These will, initially, go in `.env.local`
+because these are either different from computer to computer, or are secrets.
 
 ```
-yarn test
+# From the Stripe dashboard
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_SECRET_KEY=sk_test_...
+
+# From Products > (Your product) > Pricing
+NEXT_PUBLIC_STRIPE_PRICE_ID=price_...
+
+# During testing, you can copy this from the Stripe CLI.
+# In production, from your dashboard.
+STRIPE_WEBHOOK_SECRET=...
+
+# The domain of your server, so that Stripe
+# can redirect to it.
+DOMAIN=http://localhost:3000
 ```
 
-Blitz comes with a test setup using [Jest](https://jestjs.io/) and [react-testing-library](https://testing-library.com/).
-
-## Commands
-
-Blitz comes with a powerful CLI that is designed to make development easy and fast. You can install it with `npm i -g blitz`
+Use the [Stripe CLI](https://stripe.com/docs/stripe-cli) to forward webhooks while running this locally:
 
 ```
-  blitz [COMMAND]
-
-  dev       Start a development server
-  build     Create a production build
-  start     Start a production server
-  prisma    Run prisma commands
-  generate  Generate new files for your Blitz project
-  console   Run the Blitz console REPL
-  help      display help for blitz
-  test      Run project tests
+$ stripe listen --forward-to localhost:3000/api/webhook
 ```
 
-You can read more about it on the [CLI Overview](https://blitzjs.com/docs/cli-overview) documentation.
+---
 
-## What's included?
-
-Here is the starting structure of your app.
-
-```
-blitz-saas
-├── app/
-│   ├── api/
-│   ├── auth/
-│   │   ├── components/
-│   │   │   ├── LoginForm.tsx
-│   │   │   └── SignupForm.tsx
-│   │   ├── mutations/
-│   │   │   ├── changePassword.ts
-│   │   │   ├── forgotPassword.test.ts
-│   │   │   ├── forgotPassword.ts
-│   │   │   ├── login.ts
-│   │   │   ├── logout.ts
-│   │   │   ├── resetPassword.test.ts
-│   │   │   ├── resetPassword.ts
-│   │   │   └── signup.ts
-│   │   ├── pages/
-│   │   │   ├── forgot-password.tsx
-│   │   │   ├── login.tsx
-│   │   │   ├── reset-password.tsx
-│   │   │   └── signup.tsx
-│   │   └── validations.ts
-│   ├── core/
-│   │   ├── components/
-│   │   │   ├── Form.tsx
-│   │   │   └── LabeledTextField.tsx
-│   │   ├── hooks/
-│   │   │   └── useCurrentUser.ts
-│   │   └── layouts/
-│   │       └── Layout.tsx
-│   ├── pages/
-│   │   ├── 404.tsx
-│   │   ├── _app.tsx
-│   │   ├── _document.tsx
-│   │   ├── index.test.tsx
-│   │   └── index.tsx
-│   └── users/
-│       └── queries/
-│           └── getCurrentUser.ts
-├── db/
-│   ├── index.ts
-│   ├── schema.prisma
-│   └── seeds.ts
-├── integrations/
-├── mailers/
-│   └── forgotPasswordMailer.ts
-├── public/
-│   ├── favicon.ico*
-│   └── logo.png
-├── test/
-│   ├── setup.ts
-│   └── utils.tsx
-├── README.md
-├── babel.config.js
-├── blitz.config.js
-├── jest.config.js
-├── package.json
-├── tsconfig.json
-├── types.d.ts
-├── types.ts
-└── yarn.lock
-```
-
-These files are:
-
-- The `app/` folder is a container for most of your project. This is where you’ll put any pages or API routes.
-
-- `db/` is where your database configuration goes. If you’re writing models or checking migrations, this is where to go.
-
-- `public/` is a folder where you will put any static assets. If you have images, files, or videos which you want to use in your app, this is where to put them.
-
-- `integrations/` is a folder to put all third-party integrations like with Stripe, Sentry, etc.
-
-- `test/` is a folder where you can put test utilities and integration tests.
-
-- `package.json` contains information about your dependencies and devDependencies. If you’re using a tool like `npm` or `yarn`, you won’t have to worry about this much.
-
-- `tsconfig.json` is our recommended setup for TypeScript.
-
-- `.babelrc.js`, `.env`, etc. ("dotfiles") are configuration files for various bits of JavaScript tooling.
-
-- `blitz.config.js` is for advanced custom configuration of Blitz. It extends [`next.config.js`](https://nextjs.org/docs/api-reference/next.config.js/introduction).
-
-- `jest.config.js` contains config for Jest tests. You can [customize it if needed](https://jestjs.io/docs/en/configuration).
-
-You can read more about it in the [File Structure](https://blitzjs.com/docs/file-structure) section of the documentation.
-
-## Learn more
-
-Read the [Blitz.js Documentation](https://blitzjs.com/docs/getting-started) to learn more.
-
-The Blitz community is warm, safe, diverse, inclusive, and fun! Feel free to reach out to us in any of our communication channels.
-
-- [Website](https://blitzjs.com/)
-- [Discord](https://discord.blitzjs.com/)
-- [Report an issue](https://github.com/blitz-js/blitz/issues/new/choose)
-- [Forum discussions](https://github.com/blitz-js/blitz/discussions)
-- [How to Contribute](https://blitzjs.com/docs/contributing)
-- [Sponsor or donate](https://github.com/blitz-js/blitz#sponsors-and-donations)
+This is free and open source. I greatly appreciate reviews, PRs, and contributions:
+if you use it and it 'just works', consider [supporting me over on ko-fi](https://ko-fi.com/macwright).
